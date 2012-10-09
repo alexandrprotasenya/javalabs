@@ -1,28 +1,30 @@
-package by.framework.lab1;
+package by.framework.lab1.Products;
 
 import static java.lang.System.out;
+import by.framework.lab1.Food;
+import by.framework.lab1.Nutritious;
 
 public class Sandwich extends Food implements Nutritious {
 
-	private Filling filling1;
-	private Filling filling2;
+	private String filling1;
+	private String filling2;
 	
-	public Sandwich(String name, Filling filling1, Filling filling2) {
+	public Sandwich(String name, String inFilling1, String filling2) {
 		super(name);
-		this.filling1 = filling1;
-		this.filling2 = filling2;
+		filling1 = inFilling1.toUpperCase();
+		this.filling2 = filling2.toUpperCase();
 	}
 
 	@Override
 	public void consume() {
-		out.println(name);
+		out.println(getName());
 	}
 	
 	public String toString() {
 		return 
-				name  + " sandwich with "+ 
-				filling1.toString().toLowerCase() + " and " + 
-				filling2.toString().toLowerCase() + ".";
+				"Бутерброд с "+ 
+				filling1 + " и " + 
+				filling2 + ".";
 	}
 	
 	@Override
@@ -32,7 +34,7 @@ public class Sandwich extends Food implements Nutritious {
 		if(getClass() != otherObject.getClass()) return false;
 		Sandwich other = (Sandwich) otherObject;
 		if(hashCode() != other.hashCode()) return false;
-		if(filling1 == other.filling1 && filling2 == other.filling2)
+		if(filling1.equals(other.filling1) && filling2.equals(other.filling2))
 			return true;
 		else
 			return false;
@@ -45,6 +47,6 @@ public class Sandwich extends Food implements Nutritious {
 
 	@Override
 	public int calculateCalories() {
-		return filling1.getColories() + filling2.getColories();
+		return filling1.length() + filling2.length();
 	}
 }

@@ -6,17 +6,15 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import by.framework.lab1.Sandwiches.Impressions;
-import by.framework.lab1.Sandwiches.Magic;
-import by.framework.lab1.Sandwiches.Witchcraft;
-
 public class Application {
 
-	private static Object[] breakfast = new Sandwich[20];
+	private static final int SIZE = 20;
+	
+	private static Food[] breakfast = new Food[SIZE];
 	private static boolean sort = false;
 	private static boolean calcCalories = false;
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void main(String[] args) {
 		int count = 0;
 		for(String arg : args) {
@@ -27,16 +25,43 @@ public class Application {
 				calcCalories = true;
 			}
 			else {
-				if(count == 20) continue;
+				if(count == SIZE) continue;
 				String[] item = arg.split("/");
+				Object food = null;
 				try {
-					Class<Sandwich> o = (Class<Sandwich>) Class.forName("by.framework.lab1.Sandwiches." 
-				                    + item[1]);
-					breakfast[count++] = o.newInstance();
+					Class productClass = 
+							Class.forName("by.framework.lab1.Products." + item[0]);
+					Constructor constructor = null;
+					
+					try {
+						constructor = productClass.getConstructor(String.class);
+						food = constructor.newInstance(item[1]);
+					} catch (NoSuchMethodException e1) {
+						constructor = null;
+						try {
+							constructor = productClass.getConstructor(
+									String.class, String.class, String.class);
+							String[] fillings = item[1].split(",");
+							food = constructor.newInstance(
+									item[0],fillings[0], fillings[1]);
+						} catch (NoSuchMethodException e2) {
+							constructor = null;
+							try {
+								constructor = productClass.getConstructor();
+								food = constructor.newInstance();
+							} catch (NoSuchMethodException e3) {
+								constructor = null;
+							}
+						}
+					}
+					
+					if(food != null)
+						breakfast[count++] = (Food) food;
 				} catch (ClassNotFoundException e) {
-					out.println(arg + " is illegal.");
+					out.println(arg + " не найдено в меню.");
 				} catch (Exception e) {
 					e.printStackTrace();
+					return;
 				}
 			}
 		}
@@ -48,24 +73,36 @@ public class Application {
 	}
 	
 	private static void counter() {
-		int countImpression = 0, countMagic = 0, countWichcraft = 0;
-		for(Object o : breakfast) {
-			if(o instanceof Impressions) ++countImpression;
-			else if(o instanceof Magic) ++countMagic;
-			else if(o instanceof Witchcraft) ++countWichcraft;
+		out.println("\n\nПодсчитаем продукты: ");
+		boolean[] flags = new boolean[SIZE];
+		for(int i = 0; i < SIZE; i++) {
+			flags[i] = false;
 		}
-		out.println(
-				"\nImpressions sandwich: " + countImpression + 
-				"\nMagic sandwich:  " + countMagic + 
-				"\nWichcraft: " + countWichcraft);
+		for(int i = 0; i < SIZE; i++) {
+			if(flags[i]) continue;
+			Food tmp = breakfast[i];
+			if(tmp == null) break;
+			int count = 1;
+			for(int j = i+1; j < SIZE; j++) {
+				if(flags[j]) continue;
+				Food tmp2 = breakfast[j];
+				if(tmp2 == null) break;
+				if(tmp.equals(tmp2)) {
+					++count;
+					flags[j] = true;
+				}
+			}
+			flags[i] = true;
+			out.println(tmp + ": " + count);
+		}
 	}
 	
 	private static void sortBreakfast() {
 		if(sort) {
-			Arrays.sort((Sandwich[])breakfast, new Comparator<Sandwich>() {
+			Arrays.sort((Food[])breakfast, new Comparator<Food>() {
 
 				@Override
-				public int compare(Sandwich o1, Sandwich o2) {
+				public int compare(Food o1, Food o2) {
 					if(o1 == null) return 1;
 					if(o2 == null) return -1;
 					if(o1.getName().length() == o2.getName().length()) {
@@ -83,7 +120,7 @@ public class Application {
 	private static void showBreakfast() {
 		for(Object sandwich : breakfast) {
 			if(sandwich != null) {
-				out.println((Sandwich)sandwich);
+				out.println((Food)sandwich);
 			} else break;
 		}
 	}
@@ -98,7 +135,6 @@ public class Application {
 						Method method = c.getMethod("calculateCalories", null);
 						calories += (int)method.invoke(object, null);
 					} catch (NoSuchMethodException e) {
-						out.println("Can't get calories in one of the instances");
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
