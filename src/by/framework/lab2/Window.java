@@ -1,6 +1,5 @@
 package by.framework.lab2;
 
-import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.io.IOException;
 
@@ -10,6 +9,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+@SuppressWarnings("serial")
 public class Window extends JFrame {
 	private static final int WIDTH = 600;
 	private static final int HEIGHT = 480;

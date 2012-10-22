@@ -9,6 +9,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+@SuppressWarnings("serial")
 public class ImagePanel extends JPanel {
 	
 	JLabel formulaImage = new JLabel();

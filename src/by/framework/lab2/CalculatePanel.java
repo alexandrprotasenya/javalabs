@@ -1,9 +1,7 @@
 package by.framework.lab2;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -18,9 +16,9 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+@SuppressWarnings("serial")
 public class CalculatePanel extends JPanel {
 	
-	private Box contentBox = Box.createVerticalBox();
 	private ButtonGroup memButtons = new ButtonGroup();
 	private Box memRadioBox = Box.createHorizontalBox();
 	private Box resBox = Box.createHorizontalBox();
@@ -105,7 +103,7 @@ public class CalculatePanel extends JPanel {
 		JRadioButton addMemButton1 = new JRadioButton("M1");
 		addMemButton1.addActionListener(new AddMem(1));
 		JRadioButton addMemButton2 = new JRadioButton("M2");
-		addMemButton2.addActionListener(new AddMem(3));
+		addMemButton2.addActionListener(new AddMem(2));
 		JRadioButton addMemButton3 = new JRadioButton("M3");
 		addMemButton3.addActionListener(new AddMem(3));
 		memButtons.add(addMemButton1);
