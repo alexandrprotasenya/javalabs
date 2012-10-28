@@ -2,6 +2,7 @@ package by.framework.lab3;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,13 +10,17 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -30,7 +35,7 @@ import javax.swing.JTextField;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame {
-	
+
 	// Константы с исходным размером окна приложения
 	private static final int WIDTH = 700;
 	private static final int HEIGHT = 500;
@@ -44,6 +49,7 @@ public class MainFrame extends JFrame {
 	// манипулировать из разных мест
 	private JMenuItem saveToTextMenuItem;
 	private JMenuItem saveToGraphicsMenuItem;
+	private JMenuItem saveToCSVMenuItem;
 	private JMenuItem searchValueMenuItem;
 	private JMenuItem searchFromRangeMenuItem;
 	// Поля ввода для считывания значений переменных
@@ -52,14 +58,16 @@ public class MainFrame extends JFrame {
 	private JTextField textFieldStep;
 
 	private Box hBoxResult;
-	
+
+	private Toolkit kit;
+
 	// Визуализатор ячеек таблицы
 	private GornerTableCellRenderer renderer = new
 			GornerTableCellRenderer();
-	
+
 	// Модель данных с результатами вычислений
 	private GornerTableModel data;
-	
+
 	public MainFrame(Double[] coefficients) {
 		// Обязательный вызов конструктора предка
 		super("Табулирование многочлена на отрезке по схеме Горнера");
@@ -67,7 +75,7 @@ public class MainFrame extends JFrame {
 		this.coefficients = coefficients;
 		// Установить размеры окна
 		setSize(WIDTH, HEIGHT);
-		Toolkit kit = Toolkit.getDefaultToolkit();
+		kit = Toolkit.getDefaultToolkit();
 		// Отцентрировать окно приложения на экране
 		setLocation((kit.getScreenSize().width - WIDTH)/2,
 				(kit.getScreenSize().height - HEIGHT)/2);
@@ -83,6 +91,69 @@ public class MainFrame extends JFrame {
 		JMenu tableMenu = new JMenu("Таблица");
 		// Добавить его в главное меню
 		menuBar.add(tableMenu);
+
+		JMenu aboutMenu = new JMenu("Справка");
+		menuBar.add(aboutMenu);
+		aboutMenu.add(new AbstractAction("О программе") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				class SimpleAboutDialog extends JDialog {
+
+					private static final int WIDTH = 350;
+					private static final int HEIGHT = 150;
+
+					public SimpleAboutDialog(JFrame parent) {
+						super(parent, "О программе", true);
+
+						Box b = Box.createVerticalBox();
+						b.add(Box.createGlue());
+						b.add(new JLabel("Автор: Протасеня Александр"));
+						b.add(new JLabel("2 курс, 2 группа"));
+						b.add(Box.createGlue());
+
+						JPanel p2 = new JPanel();
+						JButton ok = new JButton("Закрыть");
+						p2.add(ok);
+						getContentPane().add(p2, "South");
+
+						ok.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent evt) {
+								setVisible(false);
+							}
+						});
+
+						Box main = Box.createHorizontalBox();
+						main.add(Box.createHorizontalGlue());
+						try {
+							File imageFile = 
+									new File("resources/photo.jpg");
+							Image image = ImageIO.read(imageFile);
+							ImageIcon icon = new ImageIcon(image);
+							JLabel img = new JLabel(icon);
+							main.add(img);
+							main.add(Box.createHorizontalStrut(15));
+						} catch (IOException e) {
+						}
+						main.add(b);
+						main.add(Box.createHorizontalGlue());
+
+						getContentPane().add(main, "Center");
+
+
+						setLocation((kit.getScreenSize().width - WIDTH)/2,
+								(kit.getScreenSize().height - HEIGHT)/2);
+						setSize(WIDTH, HEIGHT);
+						setResizable(false);
+					}
+				}
+				JDialog f = new SimpleAboutDialog(new JFrame());
+				f.setVisible(true);
+			}
+
+		});
+
 		// Создать новое "действие" по сохранению в текстовый файл
 		Action saveToTextAction = new AbstractAction("Сохранить в текстовый файл") {
 			public void actionPerformed(ActionEvent event) {
@@ -101,7 +172,7 @@ public class MainFrame extends JFrame {
 					saveToTextFile(fileChooser.getSelectedFile());
 			}
 		};
-		
+
 		// Добавить соответствующий пункт подменю в меню "Файл"
 		saveToTextMenuItem = fileMenu.add(saveToTextAction);
 		// По умолчанию пункт меню является недоступным (данных ещѐ нет)
@@ -127,6 +198,26 @@ public class MainFrame extends JFrame {
 			}
 		};
 		
+		Action saveToCSVAction = new AbstractAction("Сохранить в CSV файл") {
+			public void actionPerformed(ActionEvent event) {
+				if (fileChooser==null) {
+					// Если экземпляр диалогового окна "Открыть файл" ещѐ не создан,
+					// то создать его
+					fileChooser = new JFileChooser();
+					// и инициализировать текущей директорией
+					fileChooser.setCurrentDirectory(new File("."));
+				}
+				// Показать диалоговое окно
+				if (fileChooser.showSaveDialog(MainFrame.this) ==
+						JFileChooser.APPROVE_OPTION)
+					// Если результат его показа успешный,
+					// сохранить данные в текстовый файл
+					saveInCSVFile(fileChooser.getSelectedFile());
+			}
+		};
+		saveToCSVMenuItem = fileMenu.add(saveToCSVAction);
+		saveToCSVMenuItem.setEnabled(false);		
+
 		// Добавить соответствующий пункт подменю в меню "Файл"
 		saveToGraphicsMenuItem = fileMenu.add(saveToGraphicsAction);
 		// По умолчанию пункт меню является недоступным (данных ещѐ нет)
@@ -145,7 +236,7 @@ public class MainFrame extends JFrame {
 				getContentPane().repaint();
 			}
 		};
-		
+
 		Action searchFromRangeAction = new AbstractAction("Найти из диапазона") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -158,7 +249,7 @@ public class MainFrame extends JFrame {
 				getContentPane().repaint();
 			}
 		};
-		
+
 		//Добавить действие в меню "Таблица"
 		searchValueMenuItem = tableMenu.add(searchValueAction);
 		searchFromRangeMenuItem = tableMenu.add(searchFromRangeAction);
@@ -229,7 +320,7 @@ public class MainFrame extends JFrame {
 		getContentPane().add(hboxRange, BorderLayout.NORTH);
 		// Создать кнопку "Вычислить"
 		JButton buttonCalc = new JButton("Вычислить");
-		
+
 		// Задать действие на нажатие "Вычислить" и привязать к кнопке
 		buttonCalc.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
@@ -264,6 +355,7 @@ public class MainFrame extends JFrame {
 					saveToGraphicsMenuItem.setEnabled(true);
 					searchValueMenuItem.setEnabled(true);
 					searchFromRangeMenuItem.setEnabled(true);
+					saveToCSVMenuItem.setEnabled(true);
 				} catch (NumberFormatException ex) {
 					// В случае ошибки преобразования чисел показать сообщение об ошибке
 					JOptionPane.showMessageDialog(MainFrame.this,
@@ -272,7 +364,7 @@ public class MainFrame extends JFrame {
 				}
 			}
 		});
-		
+
 		// Создать кнопку "Очистить поля"
 		JButton buttonReset = new JButton("Очистить поля");
 		// Задать действие на нажатие "Очистить поля" и привязать к кнопке
@@ -291,11 +383,12 @@ public class MainFrame extends JFrame {
 				saveToGraphicsMenuItem.setEnabled(false);
 				searchValueMenuItem.setEnabled(false);
 				searchFromRangeMenuItem.setEnabled(false);
+				saveToCSVMenuItem.setEnabled(false);
 				// Обновить область содержания главного окна
 				getContentPane().validate();
 			}
 		});
-		
+
 		// Поместить созданные кнопки в контейнер
 		Box hboxButtons = Box.createHorizontalBox();
 		hboxButtons.setBorder(BorderFactory.createBevelBorder(1));
@@ -317,7 +410,7 @@ public class MainFrame extends JFrame {
 		// Установить контейнер hBoxResult в главной (центральной) области граничной компоновки
 		getContentPane().add(hBoxResult, BorderLayout.CENTER);
 	}
-	
+
 	protected void saveToGraphicsFile(File selectedFile) {
 		try {
 			// Создать новый байтовый поток вывода, направленный в указанный файл
@@ -335,7 +428,7 @@ public class MainFrame extends JFrame {
 			// так как мы файл создаѐм, а не открываем для чтения
 		}
 	}
-	
+
 	protected void saveToTextFile(File selectedFile) {
 		try {
 			// Создать новый символьный поток вывода, направленный в указанный файл
@@ -366,4 +459,18 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
+	protected void saveInCSVFile(File selectedFile) {
+		try {
+			PrintStream out = new PrintStream(selectedFile);
+			
+			out.println("Значение X,Значение многочлена 1,Значение многочлена 2,Разность");
+			for(int i = 0; i < data.getRowCount(); i++) {
+				out.println(data.getValueAt(i, 0) + "," + data.getValueAt(i, 1) + "," + data.getValueAt(i, 2) + "," + data.getValueAt(i, 3));
+			}
+			
+			out.close();
+		} catch (FileNotFoundException e) {
+		}
+	}
+
 }

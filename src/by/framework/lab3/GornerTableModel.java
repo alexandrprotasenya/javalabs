@@ -50,12 +50,17 @@ public class GornerTableModel extends AbstractTableModel {
 			// Если запрашивается значение 1-го столбца, то это X
 			return x;
 		} else if(col == 1) {
-			// Если запрашивается значение 2-го столбца, то это значение
-			// многочлена
-			double result = 0.0;
+			double result = coefficients[0];
+			for(int i = 1; i < coefficients.length; i++) {
+				result = result*x + coefficients[i];
+			}
 			return result;
 		} else if(col == 2) {
-			return 0.1;
+			double result = coefficients[coefficients.length - 1];
+			for(int i = coefficients.length - 2; i >= 0; i--) {
+				result = result*x + coefficients[i];
+			}
+			return result;
 		} else {
 			return Double.parseDouble(formatter.getFormatter().format(getValueAt(row, 1))) 
 					- Double.parseDouble(formatter.getFormatter().format(getValueAt(row, 2)));
